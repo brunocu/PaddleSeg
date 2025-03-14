@@ -130,7 +130,7 @@ class CrossEntropyLoss(nn.Layer):
             coef = paddle.ones_like(label)
 
         if self.top_k_percent_pixels == 1.0:
-            avg_loss = paddle.mean(loss) / (paddle.mean(mask * coef) + self.EPS)
+            avg_loss = paddle.mean(loss) / (paddle.mean(mask * coef.astype(mask.dtype)) + self.EPS)
         else:
             loss = loss.reshape((-1, ))
             top_k_pixels = int(self.top_k_percent_pixels * loss.numel())

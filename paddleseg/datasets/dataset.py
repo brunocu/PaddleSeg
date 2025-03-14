@@ -95,9 +95,9 @@ class Dataset(paddle.io.Dataset):
             raise ValueError(
                 "`num_classes` should be greater than 1, but got {}".format(
                     num_classes))
-        if img_channels not in [1, 3]:
-            raise ValueError("`img_channels` should in [1, 3], but got {}".
-                             format(img_channels))
+        # if img_channels not in [1, 3]:
+        #     raise ValueError("`img_channels` should in [1, 3], but got {}".
+        #                      format(img_channels))
 
         if self.mode == 'train':
             if train_path is None:

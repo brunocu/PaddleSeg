@@ -90,9 +90,6 @@ def predict(model,
     else:
         img_lists = [image_list]
 
-    added_saved_dir = os.path.join(save_dir, 'added_prediction')
-    pred_saved_dir = os.path.join(save_dir, 'pseudo_color_prediction')
-
     logger.info("Start to predict...")
     progbar_pred = progbar.Progbar(target=len(img_lists[0]), verbose=1)
     color_map = visualize.get_color_map_list(256, custom_color=custom_color)
@@ -130,21 +127,11 @@ def predict(model,
             if im_file[0] == '/' or im_file[0] == '\\':
                 im_file = im_file[1:]
 
-            # save added image
-            added_image = utils.visualize.visualize(
-                im_path, pred, color_map, weight=0.6)
-            added_image_path = os.path.join(added_saved_dir, im_file)
-            mkdir(added_image_path)
-            cv2.imwrite(added_image_path, added_image)
-
-            # save pseudo color prediction
-            pred_mask = utils.visualize.get_pseudo_color_map(pred, color_map)
-            pred_saved_path = os.path.join(
-                pred_saved_dir, os.path.splitext(im_file)[0] + ".png")
-            mkdir(pred_saved_path)
-            pred_mask.save(pred_saved_path)
+            # save raw uint mask instead of pseudo color prediction
+            raw_saved_path = os.path.join(
+                save_dir, os.path.splitext(im_file)[0] + "_pred.png")
+            cv2.imwrite(raw_saved_path, pred)
 
             progbar_pred.update(i + 1)
 
-    logger.info("Predicted images are saved in {} and {} .".format(
-        added_saved_dir, pred_saved_dir))
+    logger.info("Predicted images are saved in {} .".format(save_dir))

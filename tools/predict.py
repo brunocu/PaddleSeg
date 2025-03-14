@@ -126,7 +126,7 @@ def main(args):
     utils.set_device(args.device)
 
     model = builder.model
-    transforms = Compose(builder.val_transforms)
+    transforms = Compose(builder.val_transforms, img_channels=2)
     image_list, image_dir = get_image_list(args.image_path)
     logger.info('The number of images: {}'.format(len(image_list)))
 

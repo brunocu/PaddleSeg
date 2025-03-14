@@ -14,15 +14,19 @@
 
 import random
 import math
+import warnings
+import logging
 
 import cv2
 import numpy as np
+import rasterio
 from PIL import Image
 
 from paddleseg.cvlibs import manager
 from paddleseg.transforms import functional
 from paddleseg.utils import logger
 
+logging.getLogger("rasterio").setLevel(logging.ERROR)
 
 @manager.TRANSFORMS.add_component
 class Compose:
@@ -60,7 +64,19 @@ class Compose:
         if 'img' not in data.keys():
             raise ValueError("`data` must include `img` key.")
         if isinstance(data['img'], str):
-            data['img'] = cv2.imread(data['img'],
+            img_path = data['img']
+            if img_path.lower().endswith(('.tif', '.tiff')):
+                # Use rasterio to read SAR TIFF data
+                with rasterio.open(img_path) as src:
+                    img = src.read()  # shape: (channels, height, width)
+                if img.shape[0] != self.img_channels:
+                    raise ValueError(
+                        "Expected {} channels, but found {} channels in the image.".
+                        format(self.img_channels, img.shape[0]))
+                # Transpose to (height, width, channels)
+                data['img'] = np.transpose(img, (1, 2, 0)).astype('float32')
+            else:
+                data['img'] = cv2.imread(data['img'],
                                      self.read_flag).astype('float32')
         if data['img'] is None:
             raise ValueError('Can\'t read The image file {}!'.format(data[
@@ -492,6 +508,13 @@ class Padding:
                 .format(im_width, im_height, target_width, target_height))
         else:
             img_channels = 1 if data['img'].ndim == 2 else data['img'].shape[2]
+            # Log all the variables before calling copyMakeBorder
+            # logger.info(f"img shape: {data['img'].shape}")
+            # logger.info(f"pad_height: {pad_height}")
+            # logger.info(f"pad_width: {pad_width}")
+            # logger.info(f"img_channels: {img_channels}")
+            # logger.info(f"im_padding_value: {self.im_padding_value}")
+
             data['img'] = cv2.copyMakeBorder(
                 data['img'],
                 0,
