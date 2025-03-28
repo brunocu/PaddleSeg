@@ -91,8 +91,10 @@ def predict(model,
         img_lists = [image_list]
 
     logger.info("Start to predict...")
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir, exist_ok=True)
+        
     progbar_pred = progbar.Progbar(target=len(img_lists[0]), verbose=1)
-    color_map = visualize.get_color_map_list(256, custom_color=custom_color)
     with paddle.no_grad():
         for i, im_path in enumerate(img_lists[local_rank]):
             data = preprocess(im_path, transforms)
